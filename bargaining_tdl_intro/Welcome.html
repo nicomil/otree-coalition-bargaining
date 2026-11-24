@@ -1,0 +1,119 @@
+{{ extends "_templates/global/Page.html" }}
+{{ block title }}General Instructions{{ endblock }}
+{{ block content }}
+
+<style>
+    .otree-body {
+        max-width: 1000px;
+    }
+</style>
+
+{{ include_sibling '_button_style.html' }}
+{{ include '_templates/global/_time_tracking_field.html' }}
+
+<div class="card bg-white mt-4 mb-4 shadow-sm">
+    <div class="card-body px-5 py-4">
+        <p><strong>Welcome!</strong></p>
+
+        <p>
+            Thank you for taking part in this experiment!
+        </p>
+
+        <p>
+            In this experiment, you and the other participants will make a series of decisions that will directly affect
+            your monetary rewards. Your earnings will depend on both your own choices and those made by the other
+            participants. Similarly, your decisions will play a role in determining the earnings of others. All the data
+            collected in this study are anonymous. The experiment consists of
+            <strong>Part 1</strong>, in which your group choices determine your earnings; an
+            additional question in a group choice task; and a final survey.
+        </p>
+
+        <p>
+            <strong>Please note:</strong> Your payment for this experiment will be an amount as the sum of the
+            participation fee and an additional question in a group choice task. Furthermore you will be paid a variable
+            amount from your group choices in Part 1 and a possible bonus from the additional question in a group choice
+            task.
+            <strong>If
+                you do not make any decision within 5 minutes, the computer will remove you from the experiment, and you
+                will
+                not receive any payment.</strong>
+        </p>
+
+        <hr class="my-4">
+
+        <p class="fw-bold mb-2">Prolific participant information</p>
+        <p class="text-muted mb-3" style="font-size:0.9rem;">
+            Your <strong>Prolific ID</strong> is required. If you arrived from Prolific, it should be
+            pre-filled automatically; otherwise enter it manually.
+        </p>
+        {{ if not require_prolific_id }}
+        <p class="alert alert-info py-2 px-3" style="font-size:0.9rem;">
+            Local testing mode: Prolific ID is optional and will be auto-filled if left empty.
+        </p>
+        {{ endif }}
+
+        <div class="mb-3">
+            <label for="prolific_pid_url" class="form-label fw-bold">Prolific ID</label>
+            <input type="text" name="prolific_pid_url" id="prolific_pid_url" class="form-control" {{ if
+                require_prolific_id }}required{{ endif }} autocomplete="off" placeholder="Your Prolific participant ID"
+                value="{{ prolific_pid_initial }}">
+        </div>
+
+        <details class="mb-0">
+            <summary class="text-muted" style="font-size:0.9rem; cursor:pointer;">
+                Optional metadata (not required to continue)
+            </summary>
+            <div class="mt-3">
+                <div class="mb-3">
+                    <label for="prolific_study_id" class="form-label">Study ID (optional)</label>
+                    <input type="text" name="prolific_study_id" id="prolific_study_id" class="form-control"
+                        autocomplete="off" placeholder="Study ID from Prolific URL">
+                </div>
+                <div class="mb-0">
+                    <label for="prolific_session_id" class="form-label">Session ID (optional)</label>
+                    <input type="text" name="prolific_session_id" id="prolific_session_id" class="form-control"
+                        autocomplete="off" placeholder="Session ID from Prolific URL">
+                </div>
+            </div>
+        </details>
+
+    </div>
+</div>
+
+{{ next_button }}
+
+<script>
+    (function () {
+        const params = new URLSearchParams(window.location.search);
+        function savedValue(key) {
+            try {
+                return window.sessionStorage.getItem(key) || '';
+            } catch (error) {
+                return '';
+            }
+        }
+
+        const pid = params.get('participant_label') || params.get('PROLIFIC_PID') ||
+            savedValue('ccf_prolific_pid');
+        const studyId = params.get('STUDY_ID') || savedValue('ccf_prolific_study_id');
+        const sessionId = params.get('SESSION_ID') || savedValue('ccf_prolific_session_id');
+
+        const pidEl = document.getElementById('prolific_pid_url');
+        const studyEl = document.getElementById('prolific_study_id');
+        const sessionEl = document.getElementById('prolific_session_id');
+
+        if (pidEl && pid) pidEl.value = pid;
+        if (studyEl && studyId) studyEl.value = studyId;
+        if (sessionEl && sessionId) sessionEl.value = sessionId;
+
+        try {
+            window.sessionStorage.removeItem('ccf_prolific_pid');
+            window.sessionStorage.removeItem('ccf_prolific_study_id');
+            window.sessionStorage.removeItem('ccf_prolific_session_id');
+        } catch (error) {
+            // Storage can be disabled; participant.label still supplies PID.
+        }
+    })();
+</script>
+
+{{ endblock }}

@@ -1,0 +1,227 @@
+{{ extends "_templates/global/Page.html" }}
+{{ block title }}Control Questions{{ endblock }}
+{{ block content }}
+
+<style>
+    .otree-body {
+        max-width: 1000px;
+    }
+
+    /* Timer hidden by default; JS will reveal it at 1 minute remaining */
+    .otree-timer,
+    .otree-timer__time-left,
+    #otree-timer {
+        display: none !important;
+    }
+
+    /* Urgent style when timer is shown */
+    #otree-timer.timer-visible,
+    .otree-timer.timer-visible {
+        display: block !important;
+        position: fixed !important;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        min-width: 340px;
+        max-width: min(92vw, 760px);
+        background-color: #f8d7da;
+        color: #842029;
+        border: 2px solid #f5c2c7;
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-weight: bold;
+        font-size: 1.1em;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    /* Also show inner time display when parent is revealed */
+    .otree-timer.timer-visible .otree-timer__time-left,
+    #otree-timer.timer-visible .otree-timer__time-left,
+    .otree-timer.timer-visible * {
+        display: inline !important;
+    }
+</style>
+
+<script>
+    (function () {
+        var SHOW_AT_SECONDS = 60;
+        var timerShown = false;
+
+        function revealTimer() {
+            var els = [
+                document.getElementById('otree-timer'),
+                document.querySelector('.otree-timer'),
+                document.querySelector('.otree-timer__time-left')
+            ];
+            els.forEach(function (el) {
+                if (el && !timerShown) {
+                    el.classList.add('timer-visible');
+                }
+            });
+            timerShown = true;
+        }
+
+        function checkTimer() {
+            if (timerShown) return;
+
+            // oTree renders the remaining time as text like "4:32" inside the timer element
+            var timerEl = document.getElementById('otree-timer') || document.querySelector('.otree-timer');
+            if (!timerEl) return;
+
+            var text = timerEl.innerText || timerEl.textContent || '';
+            var match = text.match(/(\d+):(\d{2})/);
+            if (match) {
+                var minutes = parseInt(match[1], 10);
+                var seconds = parseInt(match[2], 10);
+                var totalSeconds = minutes * 60 + seconds;
+                if (totalSeconds <= SHOW_AT_SECONDS) {
+                    revealTimer();
+                }
+            }
+        }
+
+        // Start checking once DOM is ready
+        document.addEventListener('DOMContentLoaded', function () {
+            setInterval(checkTimer, 500);
+        });
+    })();
+</script>
+
+{{ include_sibling '_button_style.html' }}
+
+{% if not is_first_attempt %}
+<div id="errorAlert" class="alert alert-danger mt-4" role="alert">
+    <strong>Incorrect answers in the previous attempt!</strong>
+    {% if cq_errors %}
+    <br>You made an error in the following: <strong>{{ cq_errors_str }}</strong>.
+    {% endif %}
+    {% if attempts_remaining > 1 %}
+    <br>You have {{ attempts_remaining }} attempts remaining. Please review your answers carefully.
+    {% elif attempts_remaining == 1 %}
+    <br>You have 1 attempt remaining. Please review your answers carefully.
+    {% else %}
+    <br>This is your last attempt. Please answer all questions correctly to continue with the experiment.
+    {% endif %}
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('errorAlert').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+</script>
+{% endif %}
+
+<div class="card bg-white mt-4 mb-4 shadow-sm">
+    <div class="card-body px-5 py-4">
+        <p>
+            <li> Please answer the following questions correctly to proceed with Part 1.</li>
+        </p>
+        <p>
+            <li> You can review the instructions by clicking the button at the bottom of the page.</li>
+        </p>
+        <p>
+            <li><strong> You have 5
+                    minutes
+                    to answer. At the end of the time limit you will be excluded from the experiment.</strong></li>
+        </p>
+        <p>
+            <li> After five wrong answers, you will be excluded from the experiment.</li>
+        </p>
+
+
+
+
+
+
+        <!-- Example 1 -->
+        <div class="mb-4" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9;">
+            <h5>Example 1</h5>
+            <p class="mb-3"><em>{{ example1_scenario|safe }}</em></p>
+
+            <div class="mb-3">
+                {{ formfield player.example1_earnings_you }}
+            </div>
+
+            <div class="mb-3">
+                {{ formfield player.example1_earnings_left }}
+            </div>
+
+            <div class="mb-3">
+                {{ formfield player.example1_earnings_right }}
+            </div>
+        </div>
+
+        <!-- Example 2 -->
+        <div class="mb-4" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9;">
+            <h5>Example 2</h5>
+            <p class="mb-3"><em>{{ example2_scenario|safe }}</em></p>
+
+            <div class="mb-3">
+                {{ formfield player.example2_earnings_you }}
+            </div>
+
+            <div class="mb-3">
+                {{ formfield player.example2_earnings_left }}
+            </div>
+
+            <div class="mb-3">
+                {{ formfield player.example2_earnings_right }}
+            </div>
+        </div>
+
+        <!-- Example 3 -->
+        <div class="mb-4" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; background-color: #f9f9f9;">
+            <h5>Example 3</h5>
+            <p class="mb-3"><em>{{ example3_scenario|safe }}</em></p>
+
+            <div class="mb-3">
+                {{ formfield player.example3_earnings_you }}
+            </div>
+
+            <div class="mb-3">
+                {{ formfield player.example3_earnings_left }}
+            </div>
+
+            <div class="mb-3">
+                {{ formfield player.example3_earnings_right }}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div style="display: none;">
+    {{ formfield "time_on_page" }}
+</div>
+
+{{ include '_templates/global/_control_questions_persistence.html' }}
+
+<div class="d-flex justify-content-between align-items-center mt-4">
+    <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#instructionsModal"
+        style="padding: 10px 20px; font-weight: bold; border-radius: 5px;">
+        Review Instructions
+    </button>
+    {{ next_button }}
+</div>
+
+<!-- Modal for Instructions -->
+<div class="modal fade" id="instructionsModal" tabindex="-1" aria-labelledby="instructionsModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="instructionsModalLabel">Instructions for Part 1</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{ include_sibling '_instructions_content.html' }}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{ endblock }}

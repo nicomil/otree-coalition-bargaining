@@ -1,0 +1,63 @@
+{{ extends "_templates/global/Page.html" }}
+{{ block title }}Experiment Terminated{{ endblock }}
+{{ block content }}
+
+<style>
+    .otree-body {
+        max-width: 1000px;
+    }
+</style>
+    <div class="card bg-white mt-4 mb-4 shadow-sm">
+        <div class="card-body px-5 py-4">
+            <p><strong>Thank you for your participation!</strong></p>
+
+            {{ if is_inactive }}
+            <p>
+                Your experiment session ended due to inactivity.
+            </p>
+            {{ else }}
+            <p>
+                You did not answer all the control questions correctly. As a result, the experiment has ended for you
+            </p>
+            {{ endif }}
+
+            <p>
+                We appreciate your time and interest in participating in this study.
+            </p>
+
+            <div class="alert alert-warning mt-3">
+                <h5 class="alert-heading">Action Required</h5>
+                <p class="mb-1">Please use the button below to return to Prolific and complete your submission.</p>
+                <p class="mb-0">Your completion code: <strong><span id="prolific-code">loading&hellip;</span></strong></p>
+            </div>
+
+            <div class="mt-3 text-center">
+                <a id="completion-link" href="#" class="btn btn-primary btn-lg">Return to Prolific</a>
+            </div>
+        </div>
+    </div>
+
+    {{ include '_templates/global/_time_tracking_field.html' }}
+
+<script>
+    (function () {
+        var completionlink = (js_vars && js_vars.completionlink) ? String(js_vars.completionlink).trim() : '';
+        var completionLinkEl = document.getElementById('completion-link');
+        var codeEl = document.getElementById('prolific-code');
+
+        // Extract the code from the URL (cc= parameter)
+        function extractCode(url) {
+            var match = url.match(/[?&]cc=([^&]+)/);
+            return match ? match[1] : url;
+        }
+
+        if (completionlink) {
+            if (completionLinkEl) completionLinkEl.href = completionlink;
+            if (codeEl) codeEl.textContent = extractCode(completionlink);
+        } else {
+            if (codeEl) codeEl.textContent = '(unavailable — contact the experimenter)';
+        }
+    })();
+</script>
+
+{{ endblock }}

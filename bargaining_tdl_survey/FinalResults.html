@@ -1,0 +1,123 @@
+{{ extends "_templates/global/Page.html" }}
+{{ block title }}Final Results{{ endblock }}
+{{ block content }}
+
+<style>
+    .otree-body {
+        max-width: 1000px;
+    }
+</style>
+
+{{ include_sibling '_button_style.html' }}
+
+<div class="card bg-white mt-4 mb-4 shadow-sm">
+    <div class="card-body px-5 py-4">
+        <h4 class="text-success mb-4">Thank you! Your participation is now complete.</h4>
+
+
+        <hr>
+
+        <h5>Part 1 Result</h5>
+
+        <div class="alert alert-info">
+            <p class="mb-2">Your payoff from Part 1 is: <strong>{{ part1_payoff }}</strong></p>
+            <hr class="mt-3 mb-3" style="border-top: 1px solid #b8daff;">
+            <p class="mb-2"><strong>Participants' choices:</strong></p>
+            <ul class="mb-0">
+                <li>
+                    <strong>You ({{ my_color }} Participant):</strong> "{{ my_choice_display }}"
+                </li>
+                <li class="mt-1">
+                    <strong>{{ left_color }} Participant:</strong> "{{ left_choice_display }}"
+                </li>
+                <li class="mt-1">
+                    <strong>{{ right_color }} Participant:</strong> "{{ right_choice_display }}"
+                </li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <h5>Confirmed Payment Summary</h5>
+        <table class="table table-bordered table-sm" style="max-width: 400px;">
+            <tbody>
+                <tr>
+                    <td>Show-up fee and survey completion:</td>
+                    <td class="text-end">{{ base_fee }}</td>
+                </tr>
+                <tr>
+                    <td>Part 1 payoff:</td>
+                    <td class="text-end">
+                        {% if part1_payoff_eligible %}
+                        {{ part1_payoff }}
+                        {% else %}
+                        0
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Money Request Game:</td>
+                    <td class="text-end">{{ beauty_contest_bonus }}</td>
+                </tr>
+
+                <tr class="table-active font-weight-bold">
+                    <td><strong>Subtotal (confirmed):</strong></td>
+                    <td class="text-end"><strong>{{ subtotal }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+
+        {% if beauty_contest_can_win_bonus %}
+        <hr>
+
+        <h5>Amounts to be determined</h5>
+        <p>The following amounts will be communicated to you after the experiment concludes:</p>
+        <ul>
+            <li><strong>$3</strong> for the money request game.</li>
+        </ul>
+        {% endif %}
+
+        <hr>
+        <p class="mb-1">
+            Your completion code: <strong><span id="prolific-code">loading&hellip;</span></strong>
+        </p>
+        <p class="mb-3">
+            Please use the button below to return to Prolific and complete your submission:
+        </p>
+        <p class="mb-0">
+            <a id="completion-button" href="#" class="btn btn-primary">Complete on Prolific now</a>
+            <br>
+            <small class="text-muted">
+                If button does not work, use
+                <a id="completion-link" href="#">this direct link</a>.
+            </small>
+        </p>
+    </div>
+</div>
+
+{{ include '_templates/global/_time_tracking_field.html' }}
+
+<script>
+    (function () {
+        const completionlink = (js_vars && js_vars.completionlink) ? String(js_vars.completionlink).trim() : '';
+        const fallbackLink = document.getElementById('completion-link');
+        const completionButton = document.getElementById('completion-button');
+        const codeEl = document.getElementById('prolific-code');
+
+        function extractCode(url) {
+            var match = url.match(/[?&]cc=([^&]+)/);
+            return match ? match[1] : url;
+        }
+
+        if (!completionlink) {
+            if (codeEl) codeEl.textContent = '(unavailable — contact the experimenter)';
+            return;
+        }
+
+        if (fallbackLink) fallbackLink.href = completionlink;
+        if (completionButton) completionButton.href = completionlink;
+        if (codeEl) codeEl.textContent = extractCode(completionlink);
+    })();
+</script>
+
+{{ endblock }}

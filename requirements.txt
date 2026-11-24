@@ -1,0 +1,3 @@
+otree==6.0.15
+psycopg2-binary>=2.9
+sentry-sdk==0.7.9

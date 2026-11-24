@@ -1,0 +1,390 @@
+{{ extends "_templates/global/Page.html" }}
+{{ block title }}Questions about Part 1{{ endblock }}
+{{ block content }}
+
+<style>
+    .otree-body {
+        max-width: 1000px;
+    }
+</style>
+
+<style>
+    .message-box {
+        border: 1px solid #ddd;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        overflow: visible;
+    }
+
+    .read-only-chat .otree-chat {
+        border: none;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+    }
+
+    .read-only-chat .otree-chat__messages {
+        max-height: 260px;
+        overflow-y: auto;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background: #f1f3f5;
+        padding: 6px 8px;
+    }
+
+    .signal-box {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 10px;
+        padding: 5px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+    }
+
+    .read-only-chat .otree-chat__input,
+    .read-only-chat .otree-chat__btn-send,
+    .read-only-chat .otree-chat>div:last-child {
+        display: none !important;
+    }
+
+    .convincingness-scale {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+        margin-top: 8px;
+        text-align: center;
+    }
+
+    .convincingness-scale label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+    }
+
+    .convincingness-anchors {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 6px;
+        color: #555;
+        font-size: 0.85rem;
+    }
+</style>
+
+
+
+{{ include_sibling '_button_style.html' }}
+
+</p>
+<p>Please answer the following questions about the task you have just completed.</p>
+<p>In this part of the experiment we ask you to guess the choices of the
+    participants you were matched with.</p>
+<h4>You are the {{ my_color }} Participant.</h4>
+
+{# === Belief Elicitation: Guess partners' choices === #}
+<div class="card border-secondary mt-3 mb-4">
+    <div class="card-header bg-secondary text-white">
+        <h4 class="mb-0">Guess your partners' choices</h4>
+    </div>
+    <div class="card-body px-5 py-4">
+        {# === Intro text: trattamento-specifico ===
+        Modificare il ramo PUBLIC o PRIVATE in modo indipendente. #}
+        {% if reveal_third_party_chat %}
+        {# ---- Ramo PUBLIC ---- #}
+        <p>
+            If you wish to review the chats between participants in your group, push the button below you will read the
+            chats at the bottom of the page.
+        </p>
+        {% else %}
+        {# ---- Ramo PRIVATE ---- #}
+        <p>
+            If you wish to review the chats between participants in your group, push the button below, you will read the
+            chats at the bottom of the page.
+        </p>
+        {% endif %}
+
+        <div class="mb-3 mt-4 text-center">
+            <button type="button" class="custom-experiment-btn" id="toggleChatBtn">Show Chats</button>
+        </div>
+
+        <!-- Q1: guess LEFT partner -->
+        <div class="mb-4">
+            <strong>Who do you think the {{ left_partner_color }} Participant supported?</strong>
+            <div class="mt-2" role="radiogroup" aria-label="Guess for {{ left_partner_color }} Participant">
+                {% for opt in guess_left_options %}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="guess_left_choice" value="{{ opt.value }}"
+                        id="{{ opt.id }}" required>
+                    <label class="form-check-label" for="{{ opt.id }}">
+                        {{ opt.label }}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="left_confidence_container" class="mt-4" style="display:none;">
+                <strong>How confident are you about your guess:</strong>
+                <div class="mt-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="guess_left_confidence" value=""
+                            id="left_conf_1" required>
+                        <label class="form-check-label" for="left_conf_1">not at all confident</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="guess_left_confidence" value=""
+                            id="left_conf_2" required>
+                        <label class="form-check-label" for="left_conf_2">fairly confident</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="guess_left_confidence" value=""
+                            id="left_conf_3" required>
+                        <label class="form-check-label" for="left_conf_3">highly confident</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="guess_left_confidence" value=""
+                            id="left_conf_4" required>
+                        <label class="form-check-label" for="left_conf_4">totally confident</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+
+        <!-- Q2: guess RIGHT partner -->
+        <div class="mb-4 mb-0">
+            <strong>Who do you think the {{ right_partner_color }} Participant supported?</strong>
+            <div class="mt-2" role="radiogroup" aria-label="Guess for {{ right_partner_color }} Participant">
+                {% for opt in guess_right_options %}
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="guess_right_choice" value="{{ opt.value }}"
+                        id="{{ opt.id }}" required>
+                    <label class="form-check-label" for="{{ opt.id }}">
+                        {{ opt.label }}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            <div id="right_confidence_container" class="mt-4" style="display:none;">
+                <strong>How confident are you about your guess:</strong>
+                <div class="mt-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="guess_right_confidence" value=""
+                            id="right_conf_1" required>
+                        <label class="form-check-label" for="right_conf_1">not at all confident</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="guess_right_confidence" value=""
+                            id="right_conf_2" required>
+                        <label class="form-check-label" for="right_conf_2">fairly confident</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="guess_right_confidence" value=""
+                            id="right_conf_3" required>
+                        <label class="form-check-label" for="right_conf_3">highly confident</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="guess_right_confidence" value=""
+                            id="right_conf_4" required>
+                        <label class="form-check-label" for="right_conf_4">totally confident</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .custom-experiment-btn {
+        background-color: #6c757d !important;
+        color: white !important;
+        padding: 10px 30px !important;
+        border: none !important;
+        border-radius: 5px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        cursor: pointer !important;
+    }
+
+    .custom-experiment-btn:hover {
+        background-color: #5a6268 !important;
+        color: white !important;
+    }
+
+    .custom-experiment-btn:focus {
+        background-color: #5a6268 !important;
+        color: white !important;
+        box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.5) !important;
+    }
+
+    .custom-experiment-btn:active {
+        background-color: #545b62 !important;
+        color: white !important;
+    }
+</style>
+
+<div id="chatSection" style="display: none;">
+
+    {# === Chat box: Left and Right partner (read-only, identical to Decision) === #}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    From <strong>{{ visual_left_color }}</strong> Participant
+                </div>
+                <div class="card-body px-5 py-4">
+                    <div class="signal-box">
+                        Final Message: {{ visual_left_received_display }}
+                    </div>
+                    <h6>Chat Log (Read-Only):</h6>
+                    <div class="message-box read-only-chat">
+                        {{ chat channel=channel_left nickname=visual_left_nickname }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    From <strong>{{ visual_right_color }}</strong> Participant
+                </div>
+                <div class="card-body px-5 py-4">
+                    <div class="signal-box">
+                        Final Message: {{ visual_right_received_display }}
+                    </div>
+                    <h6>Chat Log (Read-Only):</h6>
+                    <div class="message-box read-only-chat">
+                        {{ chat channel=channel_right nickname=visual_right_nickname }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# === Trattamento PUBLIC: terza chat tra gli altri due === #}
+    {% if reveal_third_party_chat %}
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <div class="card border-info">
+                <div class="card-header">
+                    Conversation between the <strong>{{ left_partner_color }}</strong> and
+                    <strong>{{ right_partner_color }}</strong> Participants
+                </div>
+                <div class="card-body px-5 py-4">
+                    <div class="signal-box">
+                        Final Message from {{ left_partner_color }} to {{ right_partner_color }}: {{
+                        third_signal_from_left|safe
+                        }}
+                    </div>
+                    <div class="signal-box">
+                        Final Message from {{ right_partner_color }} to {{ left_partner_color }}: {{
+                        third_signal_from_right|safe
+                        }}
+                    </div>
+                    <h6>Chat Log (Read-Only):</h6>
+                    <div class="message-box read-only-chat">
+                        <div class="otree-chat__messages">
+                            {% for row in third_chat_rows %}
+                            <p class="mb-1"><strong>{{ row.speaker }}:</strong> {{ row.body }}</p>
+                            {% endfor %}
+                            {% if not third_chat_rows %}
+                            <p class="text-muted mb-0"><em>No messages were exchanged.</em></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+<hr>
+
+
+
+<br>
+
+{{ include '_templates/global/_time_tracking_field.html' }}
+
+{{ next_button }}
+
+{{ include_sibling '_chat_customization.html' }}
+{{ include_sibling '_dropout_logic.html' }}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Toggle Chats functionality
+        var toggleBtn = document.getElementById('toggleChatBtn');
+        var chatSec = document.getElementById('chatSection');
+        if (toggleBtn && chatSec) {
+            toggleBtn.addEventListener('click', function () {
+                if (chatSec.style.display === 'none') {
+                    chatSec.style.display = 'block';
+                    toggleBtn.textContent = 'Hide Chats';
+                } else {
+                    chatSec.style.display = 'none';
+                    toggleBtn.textContent = 'Show Chats';
+                }
+            });
+        }
+
+        // Dynamic Confidence Logic for Left Partner Guess
+        const leftChoices = document.querySelectorAll('input[name="guess_left_choice"]');
+        const leftConfContainer = document.getElementById('left_confidence_container');
+        if (leftConfContainer) {
+            const leftConfRadios = leftConfContainer.querySelectorAll('input[type="radio"]');
+            leftChoices.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    leftConfContainer.style.display = 'block';
+                    // Reset selection when changing guess
+                    leftConfRadios.forEach(r => r.checked = false);
+
+                    // For Left partner, 'Right' means "You"
+                    if (this.value === 'Right') {
+                        leftConfRadios[0].value = 5;
+                        leftConfRadios[1].value = 6;
+                        leftConfRadios[2].value = 7;
+                        leftConfRadios[3].value = 8;
+                    } else {
+                        leftConfRadios[0].value = 4;
+                        leftConfRadios[1].value = 3;
+                        leftConfRadios[2].value = 2;
+                        leftConfRadios[3].value = 1;
+                    }
+                });
+            });
+        }
+
+        // Dynamic Confidence Logic for Right Partner Guess
+        const rightChoices = document.querySelectorAll('input[name="guess_right_choice"]');
+        const rightConfContainer = document.getElementById('right_confidence_container');
+        if (rightConfContainer) {
+            const rightConfRadios = rightConfContainer.querySelectorAll('input[type="radio"]');
+            rightChoices.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    rightConfContainer.style.display = 'block';
+                    // Reset selection when changing guess
+                    rightConfRadios.forEach(r => r.checked = false);
+
+                    // For Right partner, 'Left' means "You"
+                    if (this.value === 'Left') {
+                        rightConfRadios[0].value = 5;
+                        rightConfRadios[1].value = 6;
+                        rightConfRadios[2].value = 7;
+                        rightConfRadios[3].value = 8;
+                    } else {
+                        rightConfRadios[0].value = 4;
+                        rightConfRadios[1].value = 3;
+                        rightConfRadios[2].value = 2;
+                        rightConfRadios[3].value = 1;
+                    }
+                });
+            });
+        }
+    });
+</script>
+
+{{ endblock }}
