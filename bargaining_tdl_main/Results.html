@@ -1,0 +1,38 @@
+{{ extends "_templates/global/Page.html" }}
+{{ block title }}Results{{ endblock }}
+{{ block content }}
+
+<style>
+    .otree-body {
+        max-width: 1000px;
+    }
+</style>
+
+{{ include_sibling '_button_style.html' }}
+
+<div class="card bg-white mt-4 mb-4 shadow-sm">
+    <div class="card-body px-5 py-4">
+
+        <p class="lead">
+            Your choice for Part 1 has been recorded.
+        </p>
+
+        <p class="lead">
+            The choices of the other two participants and your payoff for this part will be comunicated at the end of
+            the experiment.
+        </p>
+
+        <hr>
+
+    </div>
+</div>
+
+<p style="margin-top: 15px;">
+    Thank you! You have finished Part 1 of the experiment. Please click Next to proceed.
+</p>
+
+{{ include '_templates/global/_time_tracking_field.html' }}
+
+{{ next_button }}
+
+{{ endblock }}

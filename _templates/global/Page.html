@@ -1,0 +1,440 @@
+{{ extends "otree/Page.html" }}
+{{ load otree }}
+
+{{ block global_styles  }}
+<style>
+    /* Hide oTree timeout widget by default on all pages.
+       Chat page explicitly re-enables it. */
+    .otree-timer,
+    .otree-timer__time-left,
+    #otree-timer {
+        display: none !important;
+    }
+
+    #otree-timer.timer-visible,
+    .otree-timer.timer-visible {
+        display: block !important;
+        position: fixed !important;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        min-width: 340px;
+        max-width: min(92vw, 760px);
+        background-color: #f8d7da;
+        color: #842029;
+        border: 2px solid #f5c2c7;
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-weight: bold;
+        font-size: 1.05rem;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    .otree-timer.timer-visible .otree-timer__time-left,
+    #otree-timer.timer-visible .otree-timer__time-left,
+    .otree-timer.timer-visible * {
+        display: inline !important;
+    }
+
+    /* Override Bootstrap primary button color for oTree next buttons - same style as OK button */
+    /* Using very high specificity to override Bootstrap */
+    body .otree-body button.otree-btn-next.btn-primary,
+    body .otree-body .otree-btn-next.btn-primary,
+    body button.otree-btn-next.btn-primary,
+    body .otree-btn-next.btn-primary,
+    .otree-btn-next,
+    .otree-btn-next.btn-primary,
+    button.otree-btn-next.btn-primary,
+    .btn-primary.otree-btn-next,
+    button.btn-primary.otree-btn-next,
+    .otree-body .btn-primary.otree-btn-next {
+        background-color: #6c757d !important;
+        background: #6c757d !important;
+        color: white !important;
+        padding: 10px 30px !important;
+        border: none !important;
+        border-color: transparent !important;
+        border-radius: 5px !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        cursor: pointer !important;
+        float: right !important;
+        margin-top: 20px !important;
+    }
+    body .otree-body button.otree-btn-next.btn-primary:hover,
+    body .otree-body .otree-btn-next.btn-primary:hover,
+    body button.otree-btn-next.btn-primary:hover,
+    body .otree-btn-next.btn-primary:hover,
+    .otree-btn-next:hover,
+    .otree-btn-next.btn-primary:hover,
+    button.otree-btn-next.btn-primary:hover,
+    .btn-primary.otree-btn-next:hover,
+    button.btn-primary.otree-btn-next:hover,
+    .otree-body .btn-primary.otree-btn-next:hover {
+        background-color: #5a6268 !important;
+        background: #5a6268 !important;
+        color: white !important;
+        border-color: transparent !important;
+    }
+    body .otree-body button.otree-btn-next.btn-primary:focus,
+    body .otree-body .otree-btn-next.btn-primary:focus,
+    body button.otree-btn-next.btn-primary:focus,
+    body .otree-btn-next.btn-primary:focus,
+    .otree-btn-next:focus,
+    .otree-btn-next.btn-primary:focus,
+    button.otree-btn-next.btn-primary:focus,
+    .btn-primary.otree-btn-next:focus,
+    button.btn-primary.otree-btn-next:focus,
+    .otree-body .btn-primary.otree-btn-next:focus {
+        background-color: #5a6268 !important;
+        background: #5a6268 !important;
+        color: white !important;
+        border-color: transparent !important;
+        box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.5) !important;
+    }
+    body .otree-body button.otree-btn-next.btn-primary:active,
+    body .otree-body .otree-btn-next.btn-primary:active,
+    body button.otree-btn-next.btn-primary:active,
+    body .otree-btn-next.btn-primary:active,
+    .otree-btn-next:active,
+    .otree-btn-next.btn-primary:active,
+    button.otree-btn-next.btn-primary:active,
+    .btn-primary.otree-btn-next:active,
+    button.btn-primary.otree-btn-next:active,
+    .otree-body .btn-primary.otree-btn-next:active {
+        background-color: #545b62 !important;
+        background: #545b62 !important;
+        color: white !important;
+        border-color: transparent !important;
+    }
+</style>
+{{ endblock }}
+{{ block global_scripts  }}
+<script>
+    // Show timeout warning when <= 60 seconds and keep it visible while scrolling.
+    (function () {
+        const SHOW_AT_SECONDS = 60;
+        let timerPinned = false;
+
+        function getTimerElement() {
+            return document.getElementById('otree-timer') || document.querySelector('.otree-timer');
+        }
+
+        function parseSeconds(text) {
+            const match = (text || '').match(/(\d+):(\d{2})/);
+            if (!match) return null;
+            const minutes = parseInt(match[1], 10);
+            const seconds = parseInt(match[2], 10);
+            if (Number.isNaN(minutes) || Number.isNaN(seconds)) return null;
+            return (minutes * 60) + seconds;
+        }
+
+        function pinTimerBanner() {
+            const timerEl = getTimerElement();
+            if (!timerEl || timerPinned) return;
+            timerEl.classList.add('timer-visible');
+            timerPinned = true;
+        }
+
+        function checkTimeoutWarning() {
+            if (timerPinned) return;
+            const timerEl = getTimerElement();
+            if (!timerEl) return;
+            const secondsLeft = parseSeconds(timerEl.innerText || timerEl.textContent || '');
+            if (secondsLeft !== null && secondsLeft <= SHOW_AT_SECONDS) {
+                pinTimerBanner();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            setInterval(checkTimeoutWarning, 500);
+        });
+    })();
+
+    // Force gray style for all next buttons - runs immediately and repeatedly
+    (function() {
+        function forceGrayButton() {
+            const buttons = document.querySelectorAll('.otree-btn-next, button.otree-btn-next, .btn-primary.otree-btn-next');
+            buttons.forEach(function(btn) {
+                if (btn) {
+                    btn.style.setProperty('background-color', '#6c757d', 'important');
+                    btn.style.setProperty('background', '#6c757d', 'important');
+                    btn.style.setProperty('color', 'white', 'important');
+                    btn.style.setProperty('padding', '10px 30px', 'important');
+                    btn.style.setProperty('border', 'none', 'important');
+                    btn.style.setProperty('border-color', 'transparent', 'important');
+                    btn.style.setProperty('border-radius', '5px', 'important');
+                    btn.style.setProperty('font-size', '16px', 'important');
+                    btn.style.setProperty('font-weight', 'bold', 'important');
+                    btn.style.setProperty('cursor', 'pointer', 'important');
+                    btn.style.setProperty('float', 'right', 'important');
+                    btn.style.setProperty('margin-top', '20px', 'important');
+                }
+            });
+        }
+        
+        // Run immediately
+        forceGrayButton();
+        
+        // Run on DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', forceGrayButton);
+        } else {
+            forceGrayButton();
+        }
+        
+        // Run after a delay
+        setTimeout(forceGrayButton, 100);
+        setTimeout(forceGrayButton, 500);
+        setTimeout(forceGrayButton, 1000);
+        
+        // Use MutationObserver to catch dynamically added buttons
+        const observer = new MutationObserver(function(mutations) {
+            forceGrayButton();
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    })();
+    
+    // Time tracking for all pages - SIMPLIFIED VERSION
+    // This code runs immediately when the page loads
+    (function() {
+        // Clean up previous interval if exists
+        if (window._timeTrackingInterval) {
+            clearInterval(window._timeTrackingInterval);
+        }
+        
+        // Reset timer for this page
+        var pageStartTime = Date.now();
+        var timeOnPage = 0;
+        
+        // Create the time_on_page hidden field if it doesn't exist
+        function ensureTimeField() {
+            // Try to find existing field first - check multiple possible names
+            let timeField = document.querySelector('input[name="time_on_page"]');
+            if (!timeField) {
+                timeField = document.getElementById('id_time_on_page');
+            }
+            if (!timeField) {
+                // Try oTree's format: id_id_time_on_page
+                timeField = document.getElementById('id_id_time_on_page');
+            }
+            if (!timeField) {
+                // Try to find by any name containing time_on_page
+                const allInputs = document.querySelectorAll('input');
+                for (let input of allInputs) {
+                    if (input.name && (input.name === 'time_on_page' || input.name.endsWith('time_on_page'))) {
+                        timeField = input;
+                        break;
+                    }
+                }
+            }
+            
+            // If field doesn't exist, create it
+            if (!timeField) {
+                // Find the form
+                const forms = document.querySelectorAll('form');
+                if (forms.length > 0) {
+                    const form = forms[0];
+                    // Create hidden input with oTree-compatible name
+                    timeField = document.createElement('input');
+                    timeField.type = 'hidden';
+                    timeField.name = 'time_on_page';
+                    timeField.id = 'id_time_on_page';
+                    timeField.value = '0';
+                    // Insert it at the beginning of the form
+                    form.insertBefore(timeField, form.firstChild);
+                }
+            }
+            return timeField;
+        }
+        
+        // Find the time_on_page input field
+        function findTimeField() {
+            // Try multiple strategies to find the field
+            // Strategy 1: Try by name attribute (oTree format)
+            let timeField = document.querySelector('input[name="time_on_page"]');
+            if (timeField) return timeField;
+            
+            // Strategy 2: Try by id (oTree format)
+            timeField = document.getElementById('id_time_on_page');
+            if (timeField) return timeField;
+            
+            // Strategy 3: Try to find any input with time_on_page in name/id
+            const allInputs = document.querySelectorAll('input');
+            for (let input of allInputs) {
+                if ((input.name && input.name.includes('time_on_page')) ||
+                    (input.id && input.id.includes('time_on_page'))) {
+                    return input;
+                }
+            }
+            
+            // Strategy 4: Ensure it exists (create if needed)
+            timeField = ensureTimeField();
+            return timeField;
+        }
+        
+        // Update time field
+        function updateTimeField() {
+            const timeField = findTimeField();
+            if (timeField) {
+                timeOnPage = (Date.now() - pageStartTime) / 1000; // Convert to seconds
+                // Ensure we always have a valid number (at least 0)
+                const timeValue = Math.max(0, timeOnPage).toFixed(2);
+                timeField.value = timeValue;
+                return true;
+            }
+            return false;
+        }
+        
+        // Update time field periodically (every 0.5 seconds)
+        const updateInterval = setInterval(updateTimeField, 500);
+        
+        // Store interval ID so we can clear it later
+        window._timeTrackingInterval = updateInterval;
+        
+        // Update time field when page is about to unload (before form submission)
+        // Store handler so we can remove it later
+        const beforeUnloadHandler = function() {
+            const timeField = findTimeField();
+            if (timeField && pageStartTime) {
+                timeOnPage = (Date.now() - pageStartTime) / 1000;
+                const timeValue = Math.max(0, timeOnPage).toFixed(2);
+                timeField.value = timeValue;
+                timeField.setAttribute('value', timeValue);
+            }
+        };
+        window.addEventListener('beforeunload', beforeUnloadHandler);
+        
+        // Update time field when form is submitted - use capture phase to run early
+        // This needs to be inside the initialization function to access pageStartTime
+        // We'll attach this in the initialization function
+        
+        // Attach form submit handlers
+        const forms = document.querySelectorAll('form');
+        forms.forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                // Force update before submit
+                updateTimeField();
+                const timeField = findTimeField();
+                if (timeField) {
+                    // Final update
+                    timeOnPage = (Date.now() - pageStartTime) / 1000;
+                    const timeValue = Math.max(0, timeOnPage).toFixed(2);
+                    timeField.value = timeValue;
+                    timeField.setAttribute('value', timeValue);
+
+                    // Trigger events
+                    timeField.dispatchEvent(new Event('change', { bubbles: true }));
+                    timeField.dispatchEvent(new Event('input', { bubbles: true }));
+                    timeField.dispatchEvent(new Event('blur', { bubbles: true }));
+                }
+            }, true); // Use capture phase to run early
+        });
+        
+        // Also update when next button is clicked - use capture phase
+        document.addEventListener('click', function(e) {
+            const target = e.target;
+            if (target && (target.classList.contains('otree-btn-next') || 
+                          target.closest('.otree-btn-next') ||
+                          target.type === 'submit')) {
+                // Force update before navigation
+                updateTimeField();
+                const timeField = findTimeField();
+                if (timeField) {
+                    // Final update
+                    timeOnPage = (Date.now() - pageStartTime) / 1000;
+                    const timeValue = Math.max(0, timeOnPage).toFixed(2);
+                    timeField.value = timeValue;
+                    timeField.setAttribute('value', timeValue);
+                    
+                    // Trigger events
+                    timeField.dispatchEvent(new Event('change', { bubbles: true }));
+                    timeField.dispatchEvent(new Event('input', { bubbles: true }));
+                    timeField.dispatchEvent(new Event('blur', { bubbles: true }));
+                }
+            }
+        }, true); // Use capture phase
+        
+        // Handle visibility change (when user switches tabs)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // Page is hidden, pause tracking
+                timeOnPage = (Date.now() - pageStartTime) / 1000;
+            } else {
+                // Page is visible again, resume tracking
+                pageStartTime = Date.now() - (timeOnPage * 1000);
+            }
+        });
+        
+        
+        // Initial update - ensure field exists first
+        function initField() {
+            ensureTimeField();
+            const found = updateTimeField();
+            if (!found) {
+                // Retry after a short delay
+                setTimeout(function() {
+                    ensureTimeField();
+                    updateTimeField();
+                }, 200);
+            }
+        }
+        
+        // Run initialization immediately
+        initField();
+        
+        // Also ensure field exists after delays (in case form is added dynamically)
+        setTimeout(initField, 100);
+        setTimeout(initField, 500);
+        setTimeout(initField, 1000);
+    })(); // Execute immediately
+
+    // Auto-save and restore radio button selections to preserve state across page reloads (e.g. form validation errors)
+    (function() {
+        document.addEventListener("DOMContentLoaded", function() {
+            const pageKey = window.location.pathname; // Unique key per oTree page
+            const storageKey = "radio_state_" + pageKey;
+            
+            // 1. Restore state if available
+            const savedData = sessionStorage.getItem(storageKey);
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    for (const name in data) {
+                        const value = data[name];
+                        const radio = document.querySelector(`input[type="radio"][name="${name}"][value="${value}"]`);
+                        if (radio && !radio.checked) {
+                            radio.checked = true;
+                            radio.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }
+                } catch(e) {
+                    console.error("Error restoring radio state:", e);
+                }
+            }
+            
+            // 2. Save state on change
+            document.querySelectorAll('input[type="radio"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    try {
+                        let data = {};
+                        const existingData = sessionStorage.getItem(storageKey);
+                        if (existingData) {
+                            data = JSON.parse(existingData);
+                        }
+                        data[this.name] = this.value;
+                        sessionStorage.setItem(storageKey, JSON.stringify(data));
+                    } catch (e) {}
+                });
+            });
+        });
+    })();
+
+</script>
+{{ endblock }}

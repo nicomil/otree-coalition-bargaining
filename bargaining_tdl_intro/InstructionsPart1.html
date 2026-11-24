@@ -1,0 +1,20 @@
+{{ extends "_templates/global/Page.html" }}
+{{ block title }}Instructions for Part 1{{ endblock }}
+{{ block content }}
+
+<style>
+    .otree-body {
+        max-width: 1000px;
+    }
+</style>
+
+{{ include_sibling '_button_style.html' }}
+{{ include '_templates/global/_time_tracking_field.html' }}
+
+{# Il partial contiene i due rami di testo (PUBLIC/PRIVATE) selezionati da
+   reveal_third_party_chat: le istruzioni dei due trattamenti sono indipendenti. #}
+{{ include_sibling '_instructions_content.html' }}
+
+{{ next_button }}
+
+{{ endblock }}

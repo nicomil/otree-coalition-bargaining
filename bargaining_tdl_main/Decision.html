@@ -1,0 +1,280 @@
+{{ extends "_templates/global/Page.html" }}
+{{ block title }}Your Final Decision{{ endblock }}
+{{ block content }}
+
+<style>
+    .otree-body {
+        max-width: 1000px;
+    }
+</style>
+
+{{ include_sibling '_button_style.html' }}
+
+{% if signals_expired %}
+<div class="alert alert-warning mt-3" role="alert">
+    <strong>Note:</strong> Your time for sending the final message has expired. Your final message has not been sent to
+    the other participants.
+</div>
+{% endif %}
+
+<style>
+    .message-box {
+        border: 1px solid #ddd;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        overflow: visible;
+    }
+
+    .read-only-chat .otree-chat {
+        border: none;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+    }
+
+    .read-only-chat .otree-chat__messages {
+        max-height: 260px;
+        overflow-y: auto;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        background: #f1f3f5;
+        padding: 6px 8px;
+    }
+
+    .signal-box {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 10px;
+        padding: 5px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+    }
+
+    .read-only-chat .otree-chat__input,
+    .read-only-chat .otree-chat__btn-send,
+    .read-only-chat .otree-chat>div:last-child {
+        display: none !important;
+    }
+</style>
+
+<style>
+    /* Timer hidden by default; JS will reveal it at 1 minute remaining */
+    .otree-timer,
+    .otree-timer__time-left,
+    #otree-timer {
+        display: none !important;
+    }
+
+    /* Urgent style when timer is shown */
+    #otree-timer.timer-visible,
+    .otree-timer.timer-visible {
+        display: block !important;
+        position: fixed !important;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        min-width: 340px;
+        max-width: min(92vw, 760px);
+        background-color: #f8d7da;
+        color: #842029;
+        border: 2px solid #f5c2c7;
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-weight: bold;
+        font-size: 1.1em;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    /* Also show inner time display when parent is revealed */
+    .otree-timer.timer-visible .otree-timer__time-left,
+    #otree-timer.timer-visible .otree-timer__time-left,
+    .otree-timer.timer-visible * {
+        display: inline !important;
+    }
+</style>
+
+<script>
+    (function () {
+        var SHOW_AT_SECONDS = 60;
+        var timerShown = false;
+
+        function revealTimer() {
+            var els = [
+                document.getElementById('otree-timer'),
+                document.querySelector('.otree-timer'),
+                document.querySelector('.otree-timer__time-left')
+            ];
+            els.forEach(function (el) {
+                if (el && !timerShown) {
+                    el.classList.add('timer-visible');
+                }
+            });
+            timerShown = true;
+        }
+
+        function checkTimer() {
+            if (timerShown) return;
+            var timerEl = document.getElementById('otree-timer') || document.querySelector('.otree-timer');
+            if (!timerEl) return;
+            var text = timerEl.innerText || timerEl.textContent || '';
+            var match = text.match(/(\d+):(\d{2})/);
+            if (match) {
+                var minutes = parseInt(match[1], 10);
+                var seconds = parseInt(match[2], 10);
+                var totalSeconds = minutes * 60 + seconds;
+                if (totalSeconds <= SHOW_AT_SECONDS) {
+                    revealTimer();
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            setInterval(checkTimer, 500);
+        });
+    })();
+</script>
+<p><strong>Please make your final decision. Note that if you have not made your decision within 5 minutes, you will be
+        excluded from the experiment.</strong>
+</p>
+<h4> You are the {{ my_color }} Participant.</h4>
+
+
+
+
+
+{# === Visibilità dei messaggi: testo specifico del trattamento ===
+Modificare il ramo PUBLIC o PRIVATE in modo indipendente: editare uno
+non tocca l'altro. #}
+{% if reveal_third_party_chat %}
+{# ---- Ramo PUBLIC (comunicazione pubblica) ---- #}
+
+<p>
+    Here are the Chats between the other two participants, you and each of the other participants, and the final
+    messages
+    received from each of
+    them, and those exchanged between the other two participants.
+    Based on this information, please make your final decision.
+</p>
+
+
+
+{% else %}
+{# ---- Ramo PRIVATE (comunicazione privata, baseline) ---- #}
+<p>
+    Here are the Chats between you and each of the other participants, and the final
+    messages
+    received from each of
+    them.
+    Based on this information, please make your final decision.
+</p>
+
+
+{% endif %}
+
+
+
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                From <strong>{{ visual_left_color }}</strong> Participant
+            </div>
+            <div class="card-body px-5 py-4">
+                <div class="signal-box">
+                    Final Message: {{ visual_left_received_display }}
+                </div>
+                <h6>Chat Log (Read-Only):</h6>
+                <div class="message-box read-only-chat">
+                    {{ chat channel=channel_left nickname=visual_left_nickname }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                From <strong>{{ visual_right_color }}</strong> Participant
+            </div>
+            <div class="card-body px-5 py-4">
+                <div class="signal-box">
+                    Final Message: {{ visual_right_received_display }}
+                </div>
+                <h6>Chat Log (Read-Only):</h6>
+                <div class="message-box read-only-chat">
+                    {{ chat channel=channel_right nickname=visual_right_nickname }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if reveal_third_party_chat %}
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="card border-info">
+            <div class="card-header">
+                Conversation between the <strong>{{ left_partner_color }}</strong> and
+                <strong>{{ right_partner_color }}</strong> Participants
+            </div>
+            <div class="card-body px-5 py-4">
+                <div class="signal-box">
+                    Final Message from {{ left_partner_color }} to {{ right_partner_color }}: {{ third_signal_from_left|safe }}
+                </div>
+                <div class="signal-box">
+                    Final Message from {{ right_partner_color }} to {{ left_partner_color }}: {{ third_signal_from_right|safe }}
+                </div>
+                <h6>Chat Log (Read-Only):</h6>
+                <div class="message-box read-only-chat">
+                    <div class="otree-chat__messages">
+                        {% for row in third_chat_rows %}
+                        <p class="mb-1"><strong>{{ row.speaker }}:</strong> {{ row.body }}</p>
+                        {% endfor %}
+                        {% if not third_chat_rows %}
+                        <p class="text-muted mb-0"><em>No messages were exchanged.</em></p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<hr>
+
+<div class="card border-secondary">
+    <div class="card-header bg-secondary text-white">
+        <h4>Select your option:</h4>
+    </div>
+    <div class="card-body px-5 py-4">
+        <p>
+            Please make a final decision to determine earnings:
+        </p>
+        <p></p>
+        <div class="form-group">
+            {% for opt in decision_options %}
+            <div class="form-check mb-3">
+                <input type="radio" name="decision_choice" value="{{ opt.value }}" id="{{ opt.id }}"
+                    class="form-check-input" required {% if opt.checked %}checked{% endif %}>
+                <label class="form-check-label" for="{{ opt.id }}">
+                    <strong>{{ opt.label }}</strong> <em>{{ opt.details }}</em>
+                </label>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<br>
+
+{{ include '_templates/global/_time_tracking_field.html' }}
+
+{{ next_button }}
+
+{{ include_sibling '_chat_customization.html' }}
+{{ include_sibling '_dropout_logic.html' }}
+
+{{ endblock }}
